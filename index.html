@@ -150,21 +150,158 @@ const supabaseClient = window.supabase.createClient(
     SUPABASE_ANON_KEY
 );
 
-async function testDatabase() {
+const borang = document.getElementById("borangKomen");
+const senaraiKomen = document.getElementById("senaraiKomen");
+const mesej = document.getElementById("mesej");
+
+
+async function paparkanKomen() {
+
+    senaraiKomen.innerHTML = "<p>Memuatkan komen...</p>";
 
     const result = await supabaseClient
         .from("comments")
-        .select("*");
+        .select("*")
+        .order("created_at", { ascending: false });
 
-    console.log("RESULT:", result);
+    if (result.error) {
 
-    document.getElementById("senaraiKomen").innerHTML =
-        "<pre>" + JSON.stringify(result, null, 2) + "</pre>";
+        console.error(result.error);
+
+        senaraiKomen.innerHTML =
+            "<p style='color:red;'>Gagal: " +
+            result.error.message +
+            "</p>";
+
+        return;
+    }
+
+    if (result.data.length === 0) {
+
+        senaraiKomen.innerHTML =
+            "<p>Belum ada komen.</p>";
+
+        return;
+    }
+
+    senaraiKomen.innerHTML = "";
+
+    result.data.forEach(function(komen) {
+
+        const kotak = document.createElement("div");
+
+        kotak.style.backgroundColor = "rgba(255,255,255,0.15)";
+        kotak.style.padding = "15px";
+        kotak.style.margin = "10px 0";
+        kotak.style.borderRadius = "8px";
+
+
+        const nama = document.createElement("strong");
+
+        nama.textContent =
+            "Nama pengguna: " + komen.nama;
+
+
+        const anime = document.createElement("p");
+
+        anime.textContent =
+            "Anime: " + komen.anime;
+
+
+        const teks = document.createElement("p");
+
+        teks.textContent =
+            "Komen: " + komen.komen;
+
+
+        kotak.appendChild(nama);
+        kotak.appendChild(anime);
+        kotak.appendChild(teks);
+
+        senaraiKomen.appendChild(kotak);
+
+    });
 }
 
-testDatabase();
+
+borang.onsubmit = async function(event) {
+
+    event.preventDefault();
+
+    const nama =
+        document.getElementById("nama").value.trim();
+
+    const anime =
+        document.getElementById("anime").value;
+
+    const komen =
+        document.getElementById("komen").value.trim();
+
+
+    if (!nama || !anime || !komen) {
+
+        mesej.textContent =
+            "Sila lengkapkan semua ruangan.";
+
+        return;
+    }
+
+
+    mesej.textContent =
+        "Sedang menghantar komen...";
+
+
+    const result = await supabaseClient
+        .from("comments")
+        .insert([
+            {
+                nama: nama,
+                anime: anime,
+                komen: komen
+            }
+        ]);
+
+
+    if (result.error) {
+
+        console.error(result.error);
+
+        mesej.textContent =
+            "Gagal menghantar: " +
+            result.error.message;
+
+        mesej.style.color = "red";
+
+        return;
+    }
+
+
+    mesej.textContent =
+        "Komen berjaya dihantar!";
+
+    mesej.style.color = "#00ff00";
+
+
+    borang.reset();
+
+    paparkanKomen();
+
+};
+
+
+document.getElementById("padam").onclick = function() {
+
+    borang.reset();
+
+    mesej.textContent = "";
+
+};
+
+
+paparkanKomen();
 
 </script>
+
 
 </body>
 </html>
