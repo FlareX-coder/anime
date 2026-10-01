@@ -1,0 +1,140 @@
+<!DOCTYPE html> <html lang="ms"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Anime Kegemaran Anda</title>
+<style>
+    body {
+        background-image: url('https://thumbs.dreamstime.com/b/nice-theme-landscape-anime-background-colors-349421212.jpg');
+        background-size: cover;
+        background-attachment: fixed;
+        background-position: center;
+        color: #ffffff;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: auto;
+        background-color: rgba(0, 0, 0, 0.75);
+        padding: 25px;
+        border-radius: 15px;
+    }
+
+    h1, h2 {
+        color: #ffffff;
+    }
+
+    input, select, textarea {
+        width: 100%;
+        max-width: 500px;
+        padding: 10px;
+        margin-top: 5px;
+        margin-bottom: 15px;
+        box-sizing: border-box;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+
+    button, input[type="submit"], input[type="button"] {
+        padding: 10px 18px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-right: 5px;
+    }
+
+    input[type="submit"] {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    #padam {
+        background-color: #777;
+        color: white;
+    }
+
+    .komen {
+        background-color: rgba(255, 255, 255, 0.12);
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+    }
+
+    .komen strong {
+        color: #ffd700;
+    }
+
+    #mesej {
+        margin-top: 15px;
+        font-weight: bold;
+    }
+</style>
+
+</head> <body> <div class="container">
+<h1>Anime Kegemaran Anda</h1>
+
+<p>Selamat datang! Pilih anime kegemaran anda dan tulis komen.</p>
+
+<img src="anime.jpg" alt="Gambar anime" width="300">
+
+<p>
+    Letakkan gambar bernama <b>anime.jpg</b>
+    dalam folder yang sama dengan fail HTML ini.
+</p>
+
+<p>
+    <a href="#borang" style="color: #ffd700;">
+        Pergi ke borang komen
+    </a>
+</p>
+
+<h2 id="borang">Borang Komen</h2>
+
+<form id="borangKomen">
+
+    <p>
+        <label for="nama">Nama pengguna:</label><br>
+        <input type="text" id="nama" required maxlength="50">
+    </p>
+
+    <p>
+        <label for="anime">Pilih anime:</label><br>
+
+        <select id="anime" required>
+            <option value="">-- Sila pilih anime --</option>
+            <option value="OneHa Pieace">OneHa Pieace</option>
+            <option value="Aidi Anime">Aidi Anime</option>
+            <option value="Jayden Nime">Jayden Nime</option>
+            <option value="Blue Idraki Lock">Blue Idraki Lock</option>
+        </select>
+    </p>
+
+    <p>
+        <label for="komen">Ruang komen:</label><br>
+
+        <textarea
+            id="komen"
+            rows="5"
+            maxlength="500"
+            required
+        ></textarea>
+    </p>
+
+    <input type="submit" value="Hantar Komen">
+
+    <input
+        type="button"
+        id="padam"
+        value="Padam"
+    >
+
+</form>
+
+<p id="mesej"></p>
+
+<h2>Komen Pengguna</h2>
+
+<div id="senaraiKomen">
+    <p>Sedang memuatkan komen...</p>
+</div>
+
+</div> <!-- Supabase JavaScript Library --> <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> <script> // ========================================================= // MASUKKAN MAKLUMAT SUPABASE ANDA DI SINI // ========================================================= const SUPABASE_URL = "https://skavpezvjlqvcqxxnzkw.supabase.co"; const SUPABASE_ANON_KEY = "sb_publishable_qPEBd6FQhghcSTUIhR8Nyg_BqFWb6sh"; // Sambungkan website kepada Supabase const supabaseClient = window.supabase.createClient( SUPABASE_URL, SUPABASE_ANON_KEY ); // Ambil elemen HTML const borang = document.getElementById("borangKomen"); const senaraiKomen = document.getElementById("senaraiKomen"); const mesej = document.getElementById("mesej"); // ========================================================= // PAPARKAN KOMEN // ========================================================= async function paparkanKomen() { senaraiKomen.innerHTML = "<p>Sedang memuatkan komen...</p>"; const { data, error } = await supabaseClient .from("comments") .select("*") .order("created_at", { ascending: false }); if (error) { console.error(error); senaraiKomen.innerHTML = "<p>Gagal memuatkan komen.</p>"; return; } if (data.length === 0) { senaraiKomen.innerHTML = "<p>Belum ada komen.</p>"; return; } senaraiKomen.innerHTML = ""; data.forEach(function(komen) { const komenBaharu = document.createElement("div"); komenBaharu.className = "komen"; const nama = document.createElement("strong"); nama.textContent = "Nama pengguna: " + komen.nama; const anime = document.createElement("p"); anime.textContent = "Anime: " + komen.anime; const teksKomen = document.createElement("p"); teksKomen.textContent = "Komen: " + komen.komen; komenBaharu.appendChild(nama); komenBaharu.appendChild(anime); komenBaharu.appendChild(teksKomen); senaraiKomen.appendChild(komenBaharu); }); } // ========================================================= // HANTAR KOMEN // ========================================================= borang.onsubmit = async function(event) { event.preventDefault(); const nama = document.getElementById("nama").value.trim(); const anime = document.getElementById("anime").value; const komen = document.getElementById("komen").value.trim(); if (!nama || !anime || !komen) { mesej.textContent = "Sila lengkapkan semua ruangan."; mesej.style.color = "red"; return; } mesej.textContent = "Sedang menghantar komen..."; mesej.style.color = "white"; const { error } = await supabaseClient .from("comments") .insert([ { nama: nama, anime: anime, komen: komen } ]); if (error) { console.error(error); mesej.textContent = "Komen gagal dihantar."; mesej.style.color = "red"; return; } mesej.textContent = "Komen berjaya dihantar!"; mesej.style.color = "#00ff00"; borang.reset(); // Muatkan komen terbaru paparkanKomen(); }; // ========================================================= // BUTANG PADAM // ========================================================= document.getElementById("padam").onclick = function() { borang.reset(); mesej.textContent = ""; }; // ========================================================= // MUATKAN KOMEN SEMASA WEBSITE DIBUKA // ========================================================= paparkanKomen(); </script> </body> </html>
